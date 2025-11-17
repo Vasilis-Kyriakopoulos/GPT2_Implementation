@@ -20,15 +20,13 @@ class GPTModel_Torch(nn.Module):
         B, T = idx.shape
 
         pos = torch.arange(T, dtype=torch.long, device=idx.device).unsqueeze(0)  # (1, T)
-        # Token + positional embeddings
+
         x = self.token_emb(idx) + self.pos_emb(pos)
         x = self.drop(x)
 
-        # Pass through transformer blocks
         for block in self.blocks:
-           # x = block(x, attn_mask=mask)
             x = block(x,mask)
-        # Final layer norm + output head
+
         x = self.ln_f(x)
         logits = self.head(x)
         return logits
