@@ -1,0 +1,10 @@
+model:
+  dim: 768
+  n_heads: 12
+  n_layers: 12
+training:
+  lr: 3e-4
+  batch_size: 16
+  epochs: 10
+dataset:
+  path: "data/wikitext-2"
