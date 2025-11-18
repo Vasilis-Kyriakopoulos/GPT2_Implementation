@@ -8,9 +8,9 @@ class GPT2Tokenizer:
         else:
             self.tokenizer = ByteLevelBPETokenizer()
 
-    def train(self, files, vocab_size=50257):
-        self.tokenizer.train(files=files, vocab_size=vocab_size)
-        self.tokenizer.save_model("tokenizer")
+    def train(self, texts, vocab_size=50257):
+        self.tokenizer.train_from_iterator(texts, vocab_size=vocab_size)
+#        self.tokenizer.save_model("./tokenizer")
 
     def encode(self, text):
         return self.tokenizer.encode(text).ids
