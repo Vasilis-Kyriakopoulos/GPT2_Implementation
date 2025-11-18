@@ -20,7 +20,7 @@ class GPTModel_Torch(nn.Module):
         B, T = idx.shape
 
         pos = torch.arange(T, dtype=torch.long, device=idx.device).unsqueeze(0)  # (1, T)
-
+        mask = torch.tril(torch.ones(T, T, device=idx.device)).unsqueeze(0).unsqueeze(0)
         x = self.token_emb(idx) + self.pos_emb(pos)
         x = self.drop(x)
 

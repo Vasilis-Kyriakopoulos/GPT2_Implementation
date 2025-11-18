@@ -58,6 +58,6 @@ class GPTBlock_Torch(nn.Module):
 
     def forward(self, x,mask=None):
 
-        x = x + self.attn(self.ln1(x), mask=mask)
+        x = x + self.attn(self.ln1(x), attn_mask=mask)
         x = x + self.ff(self.ln2(x))
         return x

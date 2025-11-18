@@ -1,8 +1,9 @@
 import torch
 from torch.utils.data import Dataset
 
+
 class GPT2Dataset(Dataset):
-    def __init__(self, text, tokenizer, block_size=128):
+    def __init__(self,text, tokenizer,block_size=128):
         ids = tokenizer.encode(text)
         self.data = torch.tensor(ids, dtype=torch.long)
         self.block_size = block_size
@@ -15,3 +16,4 @@ class GPT2Dataset(Dataset):
         x = chunk[:-1]
         y = chunk[1:]
         return x, y
+
