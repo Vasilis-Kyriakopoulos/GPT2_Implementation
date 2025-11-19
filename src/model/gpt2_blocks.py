@@ -3,19 +3,20 @@ import torch.nn as nn
 import math
 
 class MultiHeadAttentionCustom(nn.Module):
-    def __init__(self, embed_dim, num_heads=12, dropout=0.1):
+    def __init__(self, embed_dim,num_heads, dropout):
         super().__init__()
         assert embed_dim % num_heads ==0
         self.embed_dim = embed_dim
         self.num_heads = num_heads
         self.head_dim = embed_dim // num_heads
+
         self.Wq = nn.Linear(embed_dim,embed_dim)
         self.Wk = nn.Linear(embed_dim,embed_dim)
         self.Wv = nn.Linear(embed_dim,embed_dim)
         self.Wo = nn.Linear(embed_dim,embed_dim)
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, x, attn_mask=None):
+    def forward(self, x):
 
         B,T,Q = x.size()
         Q = self.Wq(x)
@@ -26,12 +27,13 @@ class MultiHeadAttentionCustom(nn.Module):
         K = K.view(B,T,self.num_heads,self.head_dim).transpose(1,2)
         V = V.view(B,T,self.num_heads,self.head_dim).transpose(1,2)
 
-
+        
         attention = Q @ K.transpose(-2,-1) / math.sqrt(self.head_dim)
         
-        if attn_mask is not None:
-            attention = attention.masked_fill(attn_mask == 0, float("-inf"))
 
+        mask = torch.triu(torch.ones(T,T,device = x.device),diagonal = 1)
+
+        attention = attention.masked_fill(mask == 1, float('-inf'))
 
         attention = torch.softmax(attention, dim=-1)
         attention = self.dropout(attention)
@@ -44,11 +46,11 @@ class MultiHeadAttentionCustom(nn.Module):
     
 
 class GPTBlock_Torch(nn.Module):
-    def __init__(self, embed_dim, num_heads, ff_dim, dropout=0.1):
+    def __init__(self, embed_dim, num_heads, ff_dim, dropout):
         super().__init__()
         self.ln1 = nn.LayerNorm(embed_dim)
         self.ln2 = nn.LayerNorm(embed_dim)
-        self.attn = MultiHeadAttentionCustom(embed_dim, num_heads, dropout=dropout)
+        self.attn = MultiHeadAttentionCustom(embed_dim=embed_dim,num_heads=num_heads, dropout=dropout)
         self.ff = nn.Sequential(
             nn.Linear(embed_dim, ff_dim),
             nn.GELU(),
@@ -56,8 +58,8 @@ class GPTBlock_Torch(nn.Module):
         )
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, x,mask=None):
+    def forward(self, x):
 
-        x = x + self.attn(self.ln1(x), attn_mask=mask)
+        x = x + self.attn(self.ln1(x))
         x = x + self.ff(self.ln2(x))
         return x
