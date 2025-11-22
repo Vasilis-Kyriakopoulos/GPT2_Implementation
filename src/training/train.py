@@ -8,17 +8,36 @@ from src.model.tokenizer import GPT2Tokenizer
 from src.data.dataset import GPT2Dataset
 import time
 
+import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 
-def train_one_epoch(model, dataloader, optimizer, device):
+
+def plot_losses(epochs_seen, train_losses, val_losses):
+    fig, ax1 = plt.subplots(figsize=(5, 3))
+
+    # Plot training and validation loss against epochs
+    ax1.plot(epochs_seen, train_losses, label="Training loss")
+    ax1.plot(epochs_seen, val_losses, linestyle="-.", label="Validation loss")
+    ax1.set_xlabel("Epochs")
+    ax1.set_ylabel("Loss")
+    ax1.legend(loc="upper right")
+    ax1.xaxis.set_major_locator(MaxNLocator(integer=True))  # only show integer labels on x-axis
+
+    fig.tight_layout()  # Adjust layout to make room
+    plt.savefig("loss-plot.pdf")
+    plt.show()
+
+def train_one_epoch(model, dataloader, optimizer, device,freq_print):
     model.train()
     total_loss = 0
-
+    
     for i, (x, y) in enumerate(dataloader):
-        if i%20 == 0:
+        if i%freq_print == 0:
             print(f"steps:{i+1}/{len(dataloader)}")
         x = x.to(device)
         y = y.to(device)
         optimizer.zero_grad()
+        torch.cuda.empty_cache()
 
         logits = model(x)                    # (B, T, vocab)
         loss = nn.CrossEntropyLoss()( 
@@ -62,17 +81,13 @@ def main():
     val_text   = " ".join(ds["validation"]["text"])
 
     
-    tokenizer = GPT2Tokenizer(
-    "tokenizers/gpt_tokenizer/vocab.json",
-    "tokenizers/gpt_tokenizer/merges.txt"
-    )
-    #tokenizer.train(train_text,vocab_size=30000,save_dir='tokenizers/gpt_tokenizer')
+    tokenizer = GPT2Tokenizer()
     
     # -----------------------------
     # Datasets / Loaders
     # -----------------------------
-    context_length = 512
-    batch_size = 32
+    context_length = 256
+    batch_size = 16
 
     train_dataset = GPT2Dataset(txt=train_text, tokenizer=tokenizer, stride = context_length,max_length=context_length)
     val_dataset   = GPT2Dataset(txt = val_text, tokenizer=tokenizer, stride = context_length,max_length=context_length)
@@ -83,14 +98,13 @@ def main():
     # -----------------------------
     # Model
     # -----------------------------
-    vocab_size = tokenizer.tokenizer.get_vocab_size()
+    vocab_size = tokenizer.vocab_size
     model = GPTModel_Torch(
         vocab_size=vocab_size,
-        max_len=context_length,
-        embed_dim=1024,
-        num_layers=4,
-        num_heads=4,
-        ff_dim=1024,
+        max_len=256,
+        embed_dim=768,
+        num_layers=12,
+        num_heads=12,
         dropout=0.1
     )
 
@@ -102,49 +116,47 @@ def main():
     # -----------------------------
     # Training Loop
     # -----------------------------
-    epochs = 5
-
+    epochs = 10
+    train_losses, val_losses = [],[]
     for epoch in range(epochs):
-        train_loss = train_one_epoch(model, train_loader, optimizer, device)
+        
+        train_loss = train_one_epoch(model, train_loader, optimizer, device,freq_print=40)
         val_loss = evaluate(model, val_loader, device)
-
+        train_losses.append(train_loss)
+        val_losses.append(val_loss)
         print(f"Epoch {epoch+1}/{epochs}")
         print(f"  Train Loss: {train_loss:.4f}")
         print(f"  Val Loss:   {val_loss:.4f}")
-        time.sleep(4)
-        # Save checkpoint at each epoch
         torch.save(model.state_dict(), f"models/gpt2_epoch{epoch+1}.pt")
+        time.sleep(4)
+    epochs_tensor = torch.linspace(0, epochs, len(train_losses))
+    plot_losses(epochs_tensor, train_losses, val_losses)
+
 
 
 if __name__ == "__main__":
     os.makedirs("models", exist_ok=True)
     os.makedirs("tokenizers", exist_ok=True)
     main()
-    tokenizer = GPT2Tokenizer(
-    "tokenizers/gpt_tokenizer/vocab.json",
-    "tokenizers/gpt_tokenizer/merges.txt"
-    )
-    vocab_size = tokenizer.tokenizer.get_vocab_size()
-
+    tokenizer = GPT2Tokenizer()
+    vocab_size = tokenizer.vocab_size
+    print(vocab_size)
     model = GPTModel_Torch(
         vocab_size=vocab_size,
-        max_len=512,
-        embed_dim=256,
-        num_layers=6,
-        num_heads=4,
-        ff_dim=1024,
+        max_len=256,
+        embed_dim=768,
+        num_layers=12,
+        num_heads=12,
         dropout=0.1
     )
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.load_state_dict(
-    torch.load("models/gpt2_epoch3.pt", map_location=device)
+    torch.load("models/gpt2_epoch10.pt", map_location=device)
     )
 
-    prompt_ids = tokenizer.encode("The war ")
+    prompt_ids = tokenizer.encode("The war started")
     prompt_ids = torch.tensor([prompt_ids], dtype=torch.long).to(device)
     model.to(device)
 
-    generated_ids = model.generate(prompt_ids)
+    generated_ids = model.generate(prompt_ids,max_new_tokens=100,context_length=256,temperature=1,top_k=25)
     print(tokenizer.decode(generated_ids[0].tolist()))
-
-
