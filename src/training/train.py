@@ -102,9 +102,9 @@ def main():
     model = GPTModel_Torch(
         vocab_size=vocab_size,
         max_len=256,
-        embed_dim=768,
-        num_layers=12,
-        num_heads=12,
+        embed_dim=256,
+        num_layers=6,
+        num_heads=4,
         dropout=0.1
     )
 
@@ -116,6 +116,9 @@ def main():
     # -----------------------------
     # Training Loop
     # -----------------------------
+    best_val_loss = float("inf")
+    patience = 2            # stop after 2 bad epochs
+    bad_epochs = 0
     epochs = 10
     train_losses, val_losses = [],[]
     for epoch in range(epochs):
@@ -128,7 +131,22 @@ def main():
         print(f"  Train Loss: {train_loss:.4f}")
         print(f"  Val Loss:   {val_loss:.4f}")
         torch.save(model.state_dict(), f"models/gpt2_epoch{epoch+1}.pt")
+        # Early stopping logic
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            bad_epochs = 0
+            torch.save(model.state_dict(), "models/best_model.pt")
+            print("New best model saved!")
+        else:
+            bad_epochs += 1
+            print(f"No improvement (bad epochs: {bad_epochs})")
+
+        if bad_epochs >= patience:
+            print("EARLY STOPPING TRIGGERED.")
+            break
+
         time.sleep(4)
+
     epochs_tensor = torch.linspace(0, epochs, len(train_losses))
     plot_losses(epochs_tensor, train_losses, val_losses)
 
@@ -137,21 +155,21 @@ def main():
 if __name__ == "__main__":
     os.makedirs("models", exist_ok=True)
     os.makedirs("tokenizers", exist_ok=True)
-    main()
+    #main()
     tokenizer = GPT2Tokenizer()
     vocab_size = tokenizer.vocab_size
     print(vocab_size)
     model = GPTModel_Torch(
         vocab_size=vocab_size,
         max_len=256,
-        embed_dim=768,
-        num_layers=12,
-        num_heads=12,
+        embed_dim=256,
+        num_layers=6,
+        num_heads=4,
         dropout=0.1
     )
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.load_state_dict(
-    torch.load("models/gpt2_epoch10.pt", map_location=device)
+    torch.load("./models/best_model.pt", map_location=device)
     )
 
     prompt_ids = tokenizer.encode("The war started")
