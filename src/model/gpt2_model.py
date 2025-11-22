@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from .gpt2_blocks import  GPTBlock_Torch
+from src.model.gpt2_blocks import  GPTBlock_Torch
 
 class GPTModel_Torch(nn.Module):
     def __init__(self, vocab_size, max_len, embed_dim, num_heads, num_layers, dropout):
