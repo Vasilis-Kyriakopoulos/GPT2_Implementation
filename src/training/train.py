@@ -7,9 +7,17 @@ from src.model.gpt2_model import GPTModel_Torch
 from src.model.tokenizer import GPT2Tokenizer
 from src.data.dataset import GPT2Dataset
 import time
-
+import yaml
+from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
+import logging
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+)
 
 
 def plot_losses(epochs_seen, train_losses, val_losses):
@@ -27,13 +35,11 @@ def plot_losses(epochs_seen, train_losses, val_losses):
     plt.savefig("loss-plot.pdf")
     plt.show()
 
-def train_one_epoch(model, dataloader, optimizer, device,freq_print):
+def train_one_epoch(model, dataloader, optimizer, device,freq_log):
     model.train()
     total_loss = 0
     
     for i, (x, y) in enumerate(dataloader):
-        if i%freq_print == 0:
-            print(f"steps:{i+1}/{len(dataloader)}")
         x = x.to(device)
         y = y.to(device)
         optimizer.zero_grad()
@@ -76,7 +82,7 @@ def main():
     # -----------------------------
     # Load dataset (Wikitext)
     # -----------------------------
-    ds = load_dataset("wikitext", "wikitext-2-raw-v1")
+    ds = load_dataset(cfg['data']['dataset_name'],cfg['data']['dataset_config'])
     train_text = " ".join(ds["train"]["text"])
     val_text   = " ".join(ds["validation"]["text"])
 
@@ -86,26 +92,25 @@ def main():
     # -----------------------------
     # Datasets / Loaders
     # -----------------------------
-    context_length = 256
-    batch_size = 16
-
+    context_length = cfg['data']['context_length']
+    batch_size = cfg['training']['batch_size']
+    num_workers = cfg['data']['num_workers']
     train_dataset = GPT2Dataset(txt=train_text, tokenizer=tokenizer, stride = context_length,max_length=context_length)
     val_dataset   = GPT2Dataset(txt = val_text, tokenizer=tokenizer, stride = context_length,max_length=context_length)
-    print(f"Train dataset size: {len(train_dataset)}")
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True,drop_last = True)
-    val_loader   = DataLoader(val_dataset,   batch_size=batch_size,drop_last = True)
 
+    train_loader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True, drop_last = True, num_workers = num_workers)
+    val_loader   = DataLoader(val_dataset,   batch_size = batch_size, shuffle = True, drop_last = True, num_workers = num_workers)
+ 
     # -----------------------------
     # Model
     # -----------------------------
-    vocab_size = tokenizer.vocab_size
     model = GPTModel_Torch(
-        vocab_size=vocab_size,
-        max_len=256,
-        embed_dim=256,
-        num_layers=6,
-        num_heads=4,
-        dropout=0.1
+        vocab_size=cfg['model']['vocab_size'],
+        max_len=cfg['model']['max_len'],
+        embed_dim=cfg['model']['embed_dim'],
+        num_layers=cfg['model']['num_layers'],
+        num_heads=cfg['model']['num_heads'],
+        dropout=cfg['model']['dropout']
     )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -117,32 +122,30 @@ def main():
     # Training Loop
     # -----------------------------
     best_val_loss = float("inf")
-    patience = 2            # stop after 2 bad epochs
+    patience = cfg['training']['patience']            # stop after 2 bad epochs
     bad_epochs = 0
-    epochs = 10
+    epochs = cfg['training']['epochs'] 
     train_losses, val_losses = [],[]
     for epoch in range(epochs):
         
-        train_loss = train_one_epoch(model, train_loader, optimizer, device,freq_print=40)
+        train_loss = train_one_epoch(model, train_loader, optimizer, device,freq_log=40)
         val_loss = evaluate(model, val_loader, device)
         train_losses.append(train_loss)
         val_losses.append(val_loss)
-        print(f"Epoch {epoch+1}/{epochs}")
-        print(f"  Train Loss: {train_loss:.4f}")
-        print(f"  Val Loss:   {val_loss:.4f}")
+        logger.info(f"Epoch {epoch+1}/{epochs} - train_loss={train_loss:.4f}, val_loss={val_loss:.4f}")
         torch.save(model.state_dict(), f"models/gpt2_epoch{epoch+1}.pt")
         # Early stopping logic
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             bad_epochs = 0
             torch.save(model.state_dict(), "models/best_model.pt")
-            print("New best model saved!")
+            logger.info("New best model saved!")
         else:
             bad_epochs += 1
-            print(f"No improvement (bad epochs: {bad_epochs})")
+            logger.info(f"No improvement (bad epochs: {bad_epochs})")
 
         if bad_epochs >= patience:
-            print("EARLY STOPPING TRIGGERED.")
+            logger.info("EARLY STOPPING TRIGGERED.")
             break
 
         time.sleep(4)
@@ -150,31 +153,12 @@ def main():
     epochs_tensor = torch.linspace(0, epochs, len(train_losses))
     plot_losses(epochs_tensor, train_losses, val_losses)
 
-
+def load_config(path: str = "configs/config.yaml"):
+    with open(path, "r") as f:
+        return yaml.safe_load(f)
 
 if __name__ == "__main__":
     os.makedirs("models", exist_ok=True)
     os.makedirs("tokenizers", exist_ok=True)
-    #main()
-    tokenizer = GPT2Tokenizer()
-    vocab_size = tokenizer.vocab_size
-    print(vocab_size)
-    model = GPTModel_Torch(
-        vocab_size=vocab_size,
-        max_len=256,
-        embed_dim=256,
-        num_layers=6,
-        num_heads=4,
-        dropout=0.1
-    )
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.load_state_dict(
-    torch.load("./models/best_model.pt", map_location=device)
-    )
-
-    prompt_ids = tokenizer.encode("The war started")
-    prompt_ids = torch.tensor([prompt_ids], dtype=torch.long).to(device)
-    model.to(device)
-
-    generated_ids = model.generate(prompt_ids,max_new_tokens=100,context_length=256,temperature=1,top_k=25)
-    print(tokenizer.decode(generated_ids[0].tolist()))
+    cfg = load_config()
+    main()
