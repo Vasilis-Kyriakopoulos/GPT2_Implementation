@@ -3,4 +3,4 @@ tokenizers
 pyyaml
 datasets
 numpy
-import tiktoken
+tiktoken
