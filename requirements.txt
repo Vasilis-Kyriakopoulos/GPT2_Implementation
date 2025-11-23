@@ -4,3 +4,6 @@ datasets
 numpy
 tiktoken
 pytest
+mlflow
+hydra-core
+omegaconf

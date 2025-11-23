@@ -1,0 +1,4 @@
+dataset_name: wikitext
+dataset_config: wikitext-2-raw-v1
+context_length: 256
+num_workers: 0

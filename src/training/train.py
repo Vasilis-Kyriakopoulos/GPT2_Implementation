@@ -12,6 +12,9 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 import logging
+import mlflow
+import hydra
+from omegaconf import DictConfig
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -29,9 +32,9 @@ def plot_losses(epochs_seen, train_losses, val_losses):
     ax1.set_xlabel("Epochs")
     ax1.set_ylabel("Loss")
     ax1.legend(loc="upper right")
-    ax1.xaxis.set_major_locator(MaxNLocator(integer=True))  # only show integer labels on x-axis
+    ax1.xaxis.set_major_locator(MaxNLocator(integer=True)) 
 
-    fig.tight_layout()  # Adjust layout to make room
+    fig.tight_layout()
     plt.savefig("loss-plot.pdf")
     plt.show()
 
@@ -40,6 +43,7 @@ def train_one_epoch(model, dataloader, optimizer, device,freq_log):
     total_loss = 0
     
     for i, (x, y) in enumerate(dataloader):
+
         x = x.to(device)
         y = y.to(device)
         optimizer.zero_grad()
@@ -53,6 +57,9 @@ def train_one_epoch(model, dataloader, optimizer, device,freq_log):
 
         loss.backward()
         optimizer.step()
+
+        if i % freq_log == 0:
+            logger.info(f"step:{i+1}/{len(dataloader)}, loss:{loss.item():.4f}")
 
         total_loss += loss.item()
 
@@ -77,88 +84,112 @@ def evaluate(model, dataloader, device):
 
     return total_loss / len(dataloader)
 
+@hydra.main(config_path="../../configs", config_name="config", version_base=None)
+def main(cfg: DictConfig):
 
-def main():
+    print("Hydra output dir:", hydra.core.hydra_config.HydraConfig.get().runtime.output_dir)
+
+
     # -----------------------------
     # Load dataset (Wikitext)
     # -----------------------------
-    ds = load_dataset(cfg['data']['dataset_name'],cfg['data']['dataset_config'])
+    ds = load_dataset(cfg.data.dataset_name,cfg.data.dataset_config)
     train_text = " ".join(ds["train"]["text"])
     val_text   = " ".join(ds["validation"]["text"])
 
-    
+    # -----------------------------
+    # Tokenizer
+    # -----------------------------
     tokenizer = GPT2Tokenizer()
     
     # -----------------------------
     # Datasets / Loaders
     # -----------------------------
-    context_length = cfg['data']['context_length']
-    batch_size = cfg['training']['batch_size']
-    num_workers = cfg['data']['num_workers']
+    context_length = cfg.data.context_length
+    batch_size = cfg.training.batch_size
+    num_workers = cfg.data.num_workers
     train_dataset = GPT2Dataset(txt=train_text, tokenizer=tokenizer, stride = context_length,max_length=context_length)
     val_dataset   = GPT2Dataset(txt = val_text, tokenizer=tokenizer, stride = context_length,max_length=context_length)
 
     train_loader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True, drop_last = True, num_workers = num_workers)
     val_loader   = DataLoader(val_dataset,   batch_size = batch_size, shuffle = True, drop_last = True, num_workers = num_workers)
- 
+    
+
+    # -----------------------------
+    # Mlflow
+    # -----------------------------
+    mlflow.set_tracking_uri("file:./mlruns")
+
+    mlflow.set_experiment("GPT2_Implementation")
+
+    run_name = f"gpt2_run_{cfg.model.embed_dim}d_{cfg.training.epochs}epochs"
+    
+
+    with mlflow.start_run(run_name=run_name):
+        # Log config parameters
+        mlflow.log_params(cfg.model)
+        mlflow.log_params(cfg.training)
     # -----------------------------
     # Model
     # -----------------------------
-    model = GPTModel_Torch(
-        vocab_size=cfg['model']['vocab_size'],
-        max_len=cfg['model']['max_len'],
-        embed_dim=cfg['model']['embed_dim'],
-        num_layers=cfg['model']['num_layers'],
-        num_heads=cfg['model']['num_heads'],
-        dropout=cfg['model']['dropout']
-    )
+        model = GPTModel_Torch(
+            vocab_size=cfg.model.vocab_size,
+            max_len=cfg.model.max_len,
+            embed_dim=cfg.model.embed_dim,
+            num_layers=cfg.model.num_layers,
+            num_heads=cfg.model.num_heads,
+            dropout=cfg.model.dropout
+        )
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.to(device)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        model.to(device)
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)
+        optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)
 
     # -----------------------------
     # Training Loop
     # -----------------------------
-    best_val_loss = float("inf")
-    patience = cfg['training']['patience']            # stop after 2 bad epochs
-    bad_epochs = 0
-    epochs = cfg['training']['epochs'] 
-    train_losses, val_losses = [],[]
-    for epoch in range(epochs):
+        best_val_loss = float("inf")
+        patience = cfg.training.patience           # stop after 2 bad epochs
+        bad_epochs = 0
+        epochs = cfg.training.epochs
+        train_losses, val_losses = [],[]
+        for epoch in range(epochs):
         
-        train_loss = train_one_epoch(model, train_loader, optimizer, device,freq_log=40)
-        val_loss = evaluate(model, val_loader, device)
-        train_losses.append(train_loss)
-        val_losses.append(val_loss)
-        logger.info(f"Epoch {epoch+1}/{epochs} - train_loss={train_loss:.4f}, val_loss={val_loss:.4f}")
-        torch.save(model.state_dict(), f"models/gpt2_epoch{epoch+1}.pt")
+            train_loss = train_one_epoch(model, train_loader, optimizer, device,freq_log=40)
+            val_loss = evaluate(model, val_loader, device)
+            train_losses.append(train_loss)
+            val_losses.append(val_loss)
+
+            logger.info(f"Epoch {epoch+1}/{epochs} - train_loss={train_loss:.4f}, val_loss={val_loss:.4f}")
+            torch.save(model.state_dict(), f"models/gpt2_epoch{epoch+1}.pt")
+
+            # Log metrics
+            mlflow.log_metric("train_loss", train_loss, step=epoch)
+            mlflow.log_metric("val_loss", val_loss, step=epoch)
+
         # Early stopping logic
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
-            bad_epochs = 0
-            torch.save(model.state_dict(), "models/best_model.pt")
-            logger.info("New best model saved!")
-        else:
-            bad_epochs += 1
-            logger.info(f"No improvement (bad epochs: {bad_epochs})")
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                bad_epochs = 0
+                torch.save(model.state_dict(), "models/best_model.pt")
+                logger.info("New best model saved!")
+                mlflow.log_metric("best_val_loss", best_val_loss)
+                mlflow.pytorch.log_model(model, name="best_model")
+            
+            else:
+                bad_epochs += 1
+                logger.info(f"No improvement (bad epochs: {bad_epochs})")
 
-        if bad_epochs >= patience:
-            logger.info("EARLY STOPPING TRIGGERED.")
-            break
+            if bad_epochs >= patience:
+                logger.info("EARLY STOPPING TRIGGERED.")
+                break
 
-        time.sleep(4)
+            time.sleep(4)
 
-    epochs_tensor = torch.linspace(0, epochs, len(train_losses))
-    plot_losses(epochs_tensor, train_losses, val_losses)
+        epochs_tensor = torch.linspace(0, epochs, len(train_losses))
+        plot_losses(epochs_tensor, train_losses, val_losses)
 
-def load_config(path: str = "configs/config.yaml"):
-    with open(path, "r") as f:
-        return yaml.safe_load(f)
 
 if __name__ == "__main__":
-    os.makedirs("models", exist_ok=True)
-    os.makedirs("tokenizers", exist_ok=True)
-    cfg = load_config()
     main()
