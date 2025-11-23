@@ -1,0 +1,6 @@
+vocab_size: 50257
+embed_dim: 256
+num_heads: 4
+num_layers: 4
+max_len: 256
+dropout: 0.1
