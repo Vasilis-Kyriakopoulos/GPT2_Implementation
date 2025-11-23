@@ -1,0 +1,6 @@
+hydra:
+  sweeper:
+    params:
+      model.embed_dim: 256,512
+      model.num_layers: 4,6
+      training.lr: 1e-3,5e-4,3e-4

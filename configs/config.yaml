@@ -1,5 +1,7 @@
 defaults:
   - model: smallgpt2
+  - hydra/sweeper: basic
+  - hydra/launcher: basic
   - training: default
   - data: wikitext
 
