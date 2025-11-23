@@ -1,5 +1,5 @@
 defaults:
-  - model: gpt2
+  - model: smallgpt2
   - training: default
   - data: wikitext
 

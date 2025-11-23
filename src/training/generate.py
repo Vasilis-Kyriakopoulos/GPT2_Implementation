@@ -11,7 +11,11 @@ import yaml
 from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
-
+import logging
+import mlflow
+import hydra
+from omegaconf import DictConfig
+from src.training.trainer import Trainer
 
 import logging
 
@@ -21,23 +25,20 @@ logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
 )
 
-def load_config(path: str = "configs/config.yaml"):
-    with open(path, "r") as f:
-        return yaml.safe_load(f)
 
 
-if __name__ == "__main__":
-    os.makedirs("models", exist_ok=True)
-    os.makedirs("tokenizers", exist_ok=True)
-    cfg = load_config()
+@hydra.main(config_path="../../configs", config_name="config", version_base=None)
+def main(cfg: DictConfig):
+    
     tokenizer = GPT2Tokenizer()
     model = GPTModel_Torch(
-        vocab_size=cfg['model']['vocab_size'],
-        max_len=cfg['model']['max_len'],
-        embed_dim=cfg['model']['embed_dim'],
-        num_layers=cfg['model']['num_layers'],
-        num_heads=cfg['model']['num_heads'],
-        dropout=cfg['model']['dropout']
+            vocab_size=cfg.model.vocab_size,
+            max_len=cfg.model.max_len,
+            embed_dim=cfg.model.embed_dim,
+            num_layers=cfg.model.num_layers,
+            num_heads=cfg.model.num_heads,
+            dropout=cfg.model.dropout
+    
     )
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.load_state_dict(
@@ -50,3 +51,8 @@ if __name__ == "__main__":
 
     generated_ids = model.generate(prompt_ids,max_new_tokens=100,context_length=256,temperature=1,top_k=25)
     logger.info(f'Generated Text: {tokenizer.decode(generated_ids[0].tolist())}')
+
+
+if __name__ == "__main__":
+    main()
+    

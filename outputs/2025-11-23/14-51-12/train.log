@@ -1,0 +1,40 @@
+[2025-11-23 14:51:17,782][root][WARNING] - Malformed experiment '378145708589178291'. Detailed error Yaml file './mlruns/378145708589178291/meta.yaml' does not exist.
+Traceback (most recent call last):
+  File "/home/vasilis/anaconda3/envs/tfgpu/lib/python3.12/site-packages/mlflow/store/tracking/file_store.py", line 376, in search_experiments
+    exp = self._get_experiment(exp_id, view_type)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vasilis/anaconda3/envs/tfgpu/lib/python3.12/site-packages/mlflow/store/tracking/file_store.py", line 474, in _get_experiment
+    meta = FileStore._read_yaml(experiment_dir, FileStore.META_DATA_FILE_NAME)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vasilis/anaconda3/envs/tfgpu/lib/python3.12/site-packages/mlflow/store/tracking/file_store.py", line 1644, in _read_yaml
+    return _read_helper(root, file_name, attempts_remaining=retries)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vasilis/anaconda3/envs/tfgpu/lib/python3.12/site-packages/mlflow/store/tracking/file_store.py", line 1637, in _read_helper
+    result = read_yaml(root, file_name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vasilis/anaconda3/envs/tfgpu/lib/python3.12/site-packages/mlflow/utils/yaml_utils.py", line 104, in read_yaml
+    raise MissingConfigException(f"Yaml file '{file_path}' does not exist.")
+mlflow.exceptions.MissingConfigException: Yaml file './mlruns/378145708589178291/meta.yaml' does not exist.
+[2025-11-23 14:51:17,786][root][WARNING] - Malformed experiment '378145708589178291'. Detailed error Yaml file './mlruns/378145708589178291/meta.yaml' does not exist.
+Traceback (most recent call last):
+  File "/home/vasilis/anaconda3/envs/tfgpu/lib/python3.12/site-packages/mlflow/store/tracking/file_store.py", line 376, in search_experiments
+    exp = self._get_experiment(exp_id, view_type)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vasilis/anaconda3/envs/tfgpu/lib/python3.12/site-packages/mlflow/store/tracking/file_store.py", line 474, in _get_experiment
+    meta = FileStore._read_yaml(experiment_dir, FileStore.META_DATA_FILE_NAME)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vasilis/anaconda3/envs/tfgpu/lib/python3.12/site-packages/mlflow/store/tracking/file_store.py", line 1644, in _read_yaml
+    return _read_helper(root, file_name, attempts_remaining=retries)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vasilis/anaconda3/envs/tfgpu/lib/python3.12/site-packages/mlflow/store/tracking/file_store.py", line 1637, in _read_helper
+    result = read_yaml(root, file_name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vasilis/anaconda3/envs/tfgpu/lib/python3.12/site-packages/mlflow/utils/yaml_utils.py", line 104, in read_yaml
+    raise MissingConfigException(f"Yaml file '{file_path}' does not exist.")
+mlflow.exceptions.MissingConfigException: Yaml file './mlruns/378145708589178291/meta.yaml' does not exist.
+[2025-11-23 14:51:34,252][__main__][INFO] - step:1/592, loss:11.0053
+[2025-11-23 14:51:38,394][__main__][INFO] - step:41/592, loss:7.1999
+[2025-11-23 14:51:42,551][__main__][INFO] - step:81/592, loss:6.9828
+[2025-11-23 14:51:46,680][__main__][INFO] - step:121/592, loss:6.9337
+[2025-11-23 14:51:50,808][__main__][INFO] - step:161/592, loss:6.6579
+[2025-11-23 14:51:54,946][__main__][INFO] - step:201/592, loss:6.5588

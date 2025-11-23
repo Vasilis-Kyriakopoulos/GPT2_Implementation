@@ -15,13 +15,13 @@ import logging
 import mlflow
 import hydra
 from omegaconf import DictConfig
+from src.training.trainer import Trainer
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
 )
-
 
 def plot_losses(epochs_seen, train_losses, val_losses):
     fig, ax1 = plt.subplots(figsize=(5, 3))
@@ -37,52 +37,6 @@ def plot_losses(epochs_seen, train_losses, val_losses):
     fig.tight_layout()
     plt.savefig("loss-plot.pdf")
     plt.show()
-
-def train_one_epoch(model, dataloader, optimizer, device,freq_log):
-    model.train()
-    total_loss = 0
-    
-    for i, (x, y) in enumerate(dataloader):
-
-        x = x.to(device)
-        y = y.to(device)
-        optimizer.zero_grad()
-        torch.cuda.empty_cache()
-
-        logits = model(x)                    # (B, T, vocab)
-        loss = nn.CrossEntropyLoss()( 
-            logits.view(-1, logits.size(-1)), 
-            y.view(-1)
-        )
-
-        loss.backward()
-        optimizer.step()
-
-        if i % freq_log == 0:
-            logger.info(f"step:{i+1}/{len(dataloader)}, loss:{loss.item():.4f}")
-
-        total_loss += loss.item()
-
-    return total_loss / len(dataloader)
-
-
-def evaluate(model, dataloader, device):
-    model.eval()
-    total_loss = 0
-
-    with torch.no_grad():
-        for x, y in dataloader:
-            x = x.to(device)
-            y = y.to(device)
-
-            logits = model(x)
-            loss = nn.CrossEntropyLoss()( 
-                logits.view(-1, logits.size(-1)),
-                y.view(-1)
-            )
-            total_loss += loss.item()
-
-    return total_loss / len(dataloader)
 
 @hydra.main(config_path="../../configs", config_name="config", version_base=None)
 def main(cfg: DictConfig):
@@ -145,50 +99,12 @@ def main(cfg: DictConfig):
         model.to(device)
 
         optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)
+        criterion = nn.CrossEntropyLoss()
+        trainer = Trainer(model, optimizer, criterion=criterion, device=device, cfg=cfg,log_freq=40)
+        trainer.train(train_loader, val_loader)
 
-    # -----------------------------
-    # Training Loop
-    # -----------------------------
-        best_val_loss = float("inf")
-        patience = cfg.training.patience           # stop after 2 bad epochs
-        bad_epochs = 0
-        epochs = cfg.training.epochs
-        train_losses, val_losses = [],[]
-        for epoch in range(epochs):
-        
-            train_loss = train_one_epoch(model, train_loader, optimizer, device,freq_log=40)
-            val_loss = evaluate(model, val_loader, device)
-            train_losses.append(train_loss)
-            val_losses.append(val_loss)
-
-            logger.info(f"Epoch {epoch+1}/{epochs} - train_loss={train_loss:.4f}, val_loss={val_loss:.4f}")
-            torch.save(model.state_dict(), f"models/gpt2_epoch{epoch+1}.pt")
-
-            # Log metrics
-            mlflow.log_metric("train_loss", train_loss, step=epoch)
-            mlflow.log_metric("val_loss", val_loss, step=epoch)
-
-        # Early stopping logic
-            if val_loss < best_val_loss:
-                best_val_loss = val_loss
-                bad_epochs = 0
-                torch.save(model.state_dict(), "models/best_model.pt")
-                logger.info("New best model saved!")
-                mlflow.log_metric("best_val_loss", best_val_loss)
-                mlflow.pytorch.log_model(model, name="best_model")
-            
-            else:
-                bad_epochs += 1
-                logger.info(f"No improvement (bad epochs: {bad_epochs})")
-
-            if bad_epochs >= patience:
-                logger.info("EARLY STOPPING TRIGGERED.")
-                break
-
-            time.sleep(4)
-
-        epochs_tensor = torch.linspace(0, epochs, len(train_losses))
-        plot_losses(epochs_tensor, train_losses, val_losses)
+        epochs_tensor = torch.linspace(0, cfg.training.epochs, len(trainer.train_losses))
+        plot_losses(epochs_tensor, trainer.train_losses, trainer.val_losses)
 
 
 if __name__ == "__main__":

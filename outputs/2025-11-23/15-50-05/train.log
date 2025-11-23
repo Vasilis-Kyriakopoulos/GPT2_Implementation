@@ -1,0 +1,17 @@
+[2025-11-23 15:50:27,126][src.training.trainer][INFO] - step:1/592, loss:11.0042
+[2025-11-23 15:50:29,456][src.training.trainer][INFO] - step:41/592, loss:7.6658
+[2025-11-23 15:50:31,786][src.training.trainer][INFO] - step:81/592, loss:7.1062
+[2025-11-23 15:50:34,118][src.training.trainer][INFO] - step:121/592, loss:7.1385
+[2025-11-23 15:50:36,450][src.training.trainer][INFO] - step:161/592, loss:6.9300
+[2025-11-23 15:50:38,785][src.training.trainer][INFO] - step:201/592, loss:6.8830
+[2025-11-23 15:50:41,119][src.training.trainer][INFO] - step:241/592, loss:6.8469
+[2025-11-23 15:50:43,456][src.training.trainer][INFO] - step:281/592, loss:6.6233
+[2025-11-23 15:50:45,796][src.training.trainer][INFO] - step:321/592, loss:6.8220
+[2025-11-23 15:50:48,140][src.training.trainer][INFO] - step:361/592, loss:6.6102
+[2025-11-23 15:50:50,486][src.training.trainer][INFO] - step:401/592, loss:6.6021
+[2025-11-23 15:50:52,833][src.training.trainer][INFO] - step:441/592, loss:6.6642
+[2025-11-23 15:50:55,189][src.training.trainer][INFO] - step:481/592, loss:6.5324
+[2025-11-23 15:50:57,545][src.training.trainer][INFO] - step:521/592, loss:6.5009
+[2025-11-23 15:50:59,906][src.training.trainer][INFO] - step:561/592, loss:6.2663
+[2025-11-23 15:51:02,744][src.training.trainer][INFO] - Epoch 1/1 - train_loss=6.8823, val_loss=6.4255
+[2025-11-23 15:51:03,188][src.training.trainer][INFO] - New best model saved!

@@ -1,0 +1,15 @@
+[2025-11-23 15:42:21,515][src.training.trainer][INFO] - step:1/592, loss:10.9878
+[2025-11-23 15:42:23,856][src.training.trainer][INFO] - step:41/592, loss:7.7251
+[2025-11-23 15:42:26,190][src.training.trainer][INFO] - step:81/592, loss:7.1253
+[2025-11-23 15:42:28,533][src.training.trainer][INFO] - step:121/592, loss:6.9107
+[2025-11-23 15:42:30,890][src.training.trainer][INFO] - step:161/592, loss:6.7923
+[2025-11-23 15:42:33,242][src.training.trainer][INFO] - step:201/592, loss:6.7028
+[2025-11-23 15:42:35,583][src.training.trainer][INFO] - step:241/592, loss:6.8268
+[2025-11-23 15:42:37,932][src.training.trainer][INFO] - step:281/592, loss:6.6692
+[2025-11-23 15:42:40,276][src.training.trainer][INFO] - step:321/592, loss:6.6788
+[2025-11-23 15:42:42,615][src.training.trainer][INFO] - step:361/592, loss:6.6011
+[2025-11-23 15:42:44,958][src.training.trainer][INFO] - step:401/592, loss:6.7397
+[2025-11-23 15:42:47,307][src.training.trainer][INFO] - step:441/592, loss:6.6056
+[2025-11-23 15:42:49,661][src.training.trainer][INFO] - step:481/592, loss:6.4494
+[2025-11-23 15:42:52,006][src.training.trainer][INFO] - step:521/592, loss:6.6500
+[2025-11-23 15:42:54,372][src.training.trainer][INFO] - step:561/592, loss:6.4697
