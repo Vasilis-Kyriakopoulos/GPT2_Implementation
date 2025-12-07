@@ -19,6 +19,7 @@ from omegaconf import DictConfig
 from src.training.trainer import Trainer
 from urllib.parse import urlparse
 import dagshub
+from hydra.utils import to_absolute_path
 
 
 
@@ -119,15 +120,12 @@ def main(cfg: DictConfig):
         trainer.train(train_loader, val_loader)
         mlflow.log_metric("final_train_loss", trainer.train_losses[-1])
         mlflow.log_metric("final_val_loss", trainer.val_losses[-1])
-        mlflow.pytorch.log_model(trainer.model, "final_model")
-        
-        tracking_url_type_store=urlparse(mlflow.get_tracking_uri()).scheme
-        
-        if tracking_url_type_store!='file':
-            mlflow.pytorch.log_model(trainer.model,"model",registered_model_name="Best Model")
-        else:
-            mlflow.pytorch.log_model(trainer.model, "model",signature=signature)
 
+        tracking_url_type_store=urlparse(mlflow.get_tracking_uri()).scheme
+        model_dir = Path(to_absolute_path("models"))
+        model_path = model_dir / "best_model.pt"
+        mlflow.log_artifact(str(model_path), artifact_path="best_model")
+        
         epochs_tensor = torch.linspace(0, cfg.training.epochs, len(trainer.train_losses))
         plot_losses(epochs_tensor, trainer.train_losses, trainer.val_losses)
 
