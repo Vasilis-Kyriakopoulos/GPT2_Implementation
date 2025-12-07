@@ -13,9 +13,12 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 import logging
 import mlflow
+from mlflow.models import infer_signature
 import hydra
 from omegaconf import DictConfig
 from src.training.trainer import Trainer
+from urllib.parse import urlparse
+
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -36,13 +39,12 @@ def plot_losses(epochs_seen, train_losses, val_losses):
 
     fig.tight_layout()
     plt.savefig("loss-plot.pdf")
-    plt.show()
+    #plt.show()
 
 @hydra.main(config_path="../../configs", config_name="config", version_base=None)
 def main(cfg: DictConfig):
 
     print("Hydra output dir:", hydra.core.hydra_config.HydraConfig.get().runtime.output_dir)
-
 
     # -----------------------------
     # Load dataset (Wikitext)
@@ -76,13 +78,17 @@ def main(cfg: DictConfig):
 
     mlflow.set_experiment("GPT2_Implementation")
 
-    run_name = f"gpt2_run_{cfg.model.embed_dim}d_{cfg.training.epochs}epochs"
+    run_name = f"gpt2_run_{cfg.model.embed_dim}_{cfg.training.epochs}epochs"
     
 
     with mlflow.start_run(run_name=run_name):
         # Log config parameters
         mlflow.log_params(cfg.model)
         mlflow.log_params(cfg.training)
+        signature = infer_signature(
+            model_input=torch.randn(1, context_length).numpy(),
+            model_output=torch.randn(1, context_length, cfg.model.vocab_size).numpy()
+        )
     # -----------------------------
     # Model
     # -----------------------------
@@ -102,6 +108,16 @@ def main(cfg: DictConfig):
         criterion = nn.CrossEntropyLoss()
         trainer = Trainer(model, optimizer, criterion=criterion, device=device, cfg=cfg,log_freq=40)
         trainer.train(train_loader, val_loader)
+        mlflow.log_metric("final_train_loss", trainer.train_losses[-1])
+        mlflow.log_metric("final_val_loss", trainer.val_losses[-1])
+        mlflow.pytorch.log_model(trainer.model, "final_model")
+        
+        tracking_url_type_store=urlparse(mlflow.get_tracking_uri()).scheme
+        
+        if tracking_url_type_store!='file':
+            mlflow.pytorch.log_model(trainer.model,"model",registered_model_name="Best Model")
+        else:
+            mlflow.pytorch.log_model(trainer.model, "model",signature=signature)
 
         epochs_tensor = torch.linspace(0, cfg.training.epochs, len(trainer.train_losses))
         plot_losses(epochs_tensor, trainer.train_losses, trainer.val_losses)

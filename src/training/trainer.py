@@ -74,11 +74,6 @@ class Trainer:
                 self.val_losses.append(val_loss)
 
                 logger.info(f"Epoch {epoch+1}/{epochs} - train_loss={train_loss:.4f}, val_loss={val_loss:.4f}")
-          #     torch.save(model.state_dict(), f"models/gpt2_epoch{epoch+1}.pt")
-
-                # Log metrics
-                mlflow.log_metric("train_loss", train_loss, step=epoch)
-                mlflow.log_metric("val_loss", val_loss, step=epoch)
 
                 # Early stopping logic
                 if val_loss < best_val_loss:
@@ -86,9 +81,6 @@ class Trainer:
                     bad_epochs = 0
                     torch.save(self.model.state_dict(), "models/best_model.pt")
                     logger.info("New best model saved!")
-                    mlflow.log_metric("best_val_loss", best_val_loss)
-                    mlflow.pytorch.log_model(self.model, name="best_model")
-
                 else:
                     bad_epochs += 1
                     logger.info(f"No improvement (bad epochs: {bad_epochs})")
@@ -98,4 +90,6 @@ class Trainer:
                     break
 
                 time.sleep(4)
+            # Load the best model after training
+            self.model.load_state_dict(torch.load("models/best_model.pt"))
             
