@@ -7,3 +7,5 @@ pytest
 mlflow
 hydra-core
 omegaconf
+dagshub
+dvc

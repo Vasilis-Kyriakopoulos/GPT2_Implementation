@@ -2,7 +2,7 @@ import torch
 import logging
 import mlflow
 import time
-
+import os
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO,
@@ -79,6 +79,7 @@ class Trainer:
                 if val_loss < best_val_loss:
                     best_val_loss = val_loss
                     bad_epochs = 0
+                    os.makedirs("models", exist_ok=True)
                     torch.save(self.model.state_dict(), "models/best_model.pt")
                     logger.info("New best model saved!")
                 else:
@@ -91,5 +92,6 @@ class Trainer:
 
                 time.sleep(4)
             # Load the best model after training
+            
             self.model.load_state_dict(torch.load("models/best_model.pt"))
             

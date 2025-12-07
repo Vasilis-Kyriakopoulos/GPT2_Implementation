@@ -19,7 +19,7 @@ from omegaconf import DictConfig
 from src.training.trainer import Trainer
 from urllib.parse import urlparse
 import dagshub
-dagshub.init(repo_owner='Vasilis-Kyriakopoulos', repo_name='GPT2_Implementation', mlflow=True)
+
 
 
 logger = logging.getLogger(__name__)
@@ -81,7 +81,7 @@ def main(cfg: DictConfig):
     # -----------------------------
     # Mlflow
     # -----------------------------
-    print(mlflow.set_tracking_uri("https://dagshub.com/Vasilis-Kyriakopoulos/GPT2_Implementation"))
+    mlflow.set_tracking_uri("https://dagshub.com/Vasilis-Kyriakopoulos/GPT2_Implementation.mlflow")
 
 
 
