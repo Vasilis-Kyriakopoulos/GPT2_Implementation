@@ -18,6 +18,8 @@ import hydra
 from omegaconf import DictConfig
 from src.training.trainer import Trainer
 from urllib.parse import urlparse
+import dagshub
+dagshub.init(repo_owner='Vasilis-Kyriakopoulos', repo_name='GPT2_Implementation', mlflow=True)
 
 
 logger = logging.getLogger(__name__)
@@ -25,6 +27,11 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
 )
+
+os.environ['MLFLOW_TRACKING_URI']="https://github.com/Vasilis-Kyriakopoulos/GPT2_Implementation.git"
+os.environ['MLFLOW_TRACKING_USERNAME']="Vasilis-Kyriakopoulos"
+os.environ["MLFLOW_TRACKING_PASSWORD"]="c0966aa2cc5d78f4726ec30ecdf6a002565163df"
+
 
 def plot_losses(epochs_seen, train_losses, val_losses):
     fig, ax1 = plt.subplots(figsize=(5, 3))
@@ -74,7 +81,9 @@ def main(cfg: DictConfig):
     # -----------------------------
     # Mlflow
     # -----------------------------
-    mlflow.set_tracking_uri("file:./mlruns")
+    print(mlflow.set_tracking_uri("https://dagshub.com/Vasilis-Kyriakopoulos/GPT2_Implementation"))
+
+
 
     mlflow.set_experiment("GPT2_Implementation")
 
