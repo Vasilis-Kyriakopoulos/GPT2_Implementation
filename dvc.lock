@@ -1,0 +1,21 @@
+schema: '2.0'
+stages:
+  training:
+    cmd: python -m src.training.train
+    deps:
+    - path: src/training/train.py
+      hash: md5
+      md5: f96a6988c3a0999842018338d4032105
+      size: 4920
+    outs:
+    - path: models/best_model.pt
+      hash: md5
+      md5: f0a6da45ba7a723991137e2b30010526
+      size: 52330677
+  evaluate:
+    cmd: python -m src.training.evaluate
+    deps:
+    - path: src/training/evaluate.py
+      hash: md5
+      md5: 17510d673d3e96a785f0f8e552f0b9ee
+      size: 3358

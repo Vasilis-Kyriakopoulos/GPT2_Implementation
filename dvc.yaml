@@ -2,12 +2,11 @@ stages:
   training:
     cmd: python -m src.training.train
     deps:
-    - src/training.train.py
-    params:
-    - training.output
+    - src/training/train.py
     outs:
     - models/best_model.pt
   evaluate:
     cmd: python -m src.training.evaluate
     deps:
-    - src/training.evaluate.py
+    - src/training/evaluate.py
+    - models/best_model.pt

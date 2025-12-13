@@ -8,10 +8,8 @@ from src.model.tokenizer import GPT2Tokenizer
 from src.data.dataset import GPT2Dataset
 from pathlib import Path
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
 import logging
 import mlflow
-from mlflow.models import infer_signature
 import hydra
 from omegaconf import DictConfig
 from src.training.trainer import Trainer
@@ -82,7 +80,7 @@ def main(cfg: DictConfig):
 
     mlflow.set_experiment("GPT2_Test_Best_Model")
 
-    run_name = f"gpt2_run_{cfg.model.embed_dim}"
+    run_name = f"gpt2_test_{cfg.model.embed_dim}"
 
     with mlflow.start_run(run_name=run_name):
       

@@ -88,7 +88,7 @@ def main(cfg: DictConfig):
 
     mlflow.set_experiment("GPT2_Training_Experiment")
 
-    run_name = f"gpt2_run_{cfg.model.embed_dim}_{cfg.training.epochs}epochs"
+    run_name = f"gpt2_train_{cfg.model.embed_dim}_{cfg.training.epochs}epochs"
     
 
     with mlflow.start_run(run_name=run_name):
