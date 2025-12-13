@@ -21,3 +21,7 @@ stages:
     - src/training/evaluate.py
     - data/wikitext-test.txt
     - models/best_model.pt
+  upload_model:
+    cmd: dvc push models/best_model.pt
+    deps:
+    - models/best_model.pt
