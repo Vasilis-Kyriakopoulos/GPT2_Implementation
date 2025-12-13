@@ -2,4 +2,4 @@ outs:
 - md5: 33a84f130602a7c74fea8557abf5ac8e
   size: 11012046
   hash: md5
-  path: wikitext_train.txt
+  path: wikitext_data.txt

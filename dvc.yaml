@@ -2,7 +2,7 @@ stages:
   training_data_prep:
     cmd: python -m src.data.preprocess
     deps:
-    - data/wikitext-2-raw/wiki.train.raw
+    - data/wikitext_data.txt
     outs:
     - data/wikitext-train.txt
     - data/wikitext-val.txt
