@@ -25,14 +25,6 @@ logging.basicConfig(
 )
 
 
-os.environ['MLFLOW_TRACKING_URI']="https://github.com/Vasilis-Kyriakopoulos/GPT2_Implementation.git"
-os.environ['MLFLOW_TRACKING_USERNAME']="Vasilis-Kyriakopoulos"
-os.environ["MLFLOW_TRACKING_PASSWORD"]="c0966aa2cc5d78f4726ec30ecdf6a002565163df"
-
-
-
-
-
 @hydra.main(config_path="../../configs", config_name="config", version_base=None)
 def main(cfg: DictConfig):
 
