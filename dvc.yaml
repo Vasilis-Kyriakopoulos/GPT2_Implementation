@@ -3,10 +3,12 @@ stages:
     cmd: python -m src.training.train
     deps:
     - src/training/train.py
+    - data/wikitext_train.txt
     outs:
     - models/best_model.pt
   evaluate:
     cmd: python -m src.training.evaluate
     deps:
     - src/training/evaluate.py
+    - data/wikitext_train.txt
     - models/best_model.pt
