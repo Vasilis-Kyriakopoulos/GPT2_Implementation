@@ -27,7 +27,7 @@ logging.basicConfig(
 
 os.environ["MLFLOW_TRACKING_USERNAME"] = os.getenv("MLFLOW_TRACKING_USERNAME")
 os.environ["MLFLOW_TRACKING_PASSWORD"] = os.getenv("MLFLOW_TRACKING_PASSWORD")
-
+print('username' + os.environ["MLFLOW_TRACKING_USERNAME"])
 
 @hydra.main(config_path="../../configs", config_name="config", version_base=None)
 def main(cfg: DictConfig):
