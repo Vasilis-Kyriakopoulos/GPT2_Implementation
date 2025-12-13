@@ -7,3 +7,7 @@ stages:
     - training.output
     outs:
     - models/best_model.pt
+  evaluate:
+    cmd: python -m src.training.evaluate
+    deps:
+    - src/training.evaluate.py
