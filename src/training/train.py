@@ -86,7 +86,7 @@ def main(cfg: DictConfig):
 
 
 
-    mlflow.set_experiment("GPT2_Implementation")
+    mlflow.set_experiment("GPT2_Training_Experiment")
 
     run_name = f"gpt2_run_{cfg.model.embed_dim}_{cfg.training.epochs}epochs"
     
@@ -114,7 +114,7 @@ def main(cfg: DictConfig):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model.to(device)
 
-        optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)
+        optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.training.lr)
         criterion = nn.CrossEntropyLoss()
         trainer = Trainer(model, optimizer, criterion=criterion, device=device, cfg=cfg,log_freq=40)
         trainer.train(train_loader, val_loader)

@@ -1,6 +1,5 @@
 import torch
 import logging
-import mlflow
 import time
 import os
 logger = logging.getLogger(__name__)
@@ -10,7 +9,7 @@ logging.basicConfig(
 )
 
 class Trainer:
-        def __init__(self, model, optimizer, criterion, device, cfg,log_freq):
+        def __init__(self, model, optimizer, criterion, device, cfg,log_freq=0):
                 self.model = model
                 self.optimizer = optimizer
                 self.criterion = criterion
