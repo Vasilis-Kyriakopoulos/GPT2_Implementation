@@ -91,7 +91,7 @@ def main(cfg: DictConfig):
 
         optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.training.lr)
         criterion = nn.CrossEntropyLoss()
-        model.load_state_dict(torch.load(to_absolute_path('models/best_model.pt')))
+        model.load_state_dict(torch.load(to_absolute_path('models/best_model.pt'), map_location=device))
         evaluator = Trainer(model, optimizer, criterion=criterion, device=device, cfg=cfg,log_freq=0)
         test_loss = evaluator.evaluate(test_loader)
         print(f"Test Loss: {test_loss:.4f}")
