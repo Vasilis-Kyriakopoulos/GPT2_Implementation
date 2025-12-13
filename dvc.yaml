@@ -1,0 +1,9 @@
+stages:
+  training:
+    cmd: python -m src.training.train
+    deps:
+    - src/training.train.py
+    params:
+    - training.output
+    outs:
+    - models/best_model.pt
