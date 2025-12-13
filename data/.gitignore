@@ -1,1 +1,4 @@
-/wikitext_train.txt
+/wikitext-data.txt
+/wikitext-train.txt
+/wikitext-val.txt
+/wikitext-test.txt
