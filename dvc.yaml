@@ -4,20 +4,20 @@ stages:
     deps:
     - data/wikitext-2-raw/wiki.train.raw
     outs:
-    - data/wikitext_train.txt
-    - data/wikitext_val.txt
-    - data/wikitext_test.txt
+    - data/wikitext-train.txt
+    - data/wikitext-val.txt
+    - data/wikitext-test.txt
   training:
     cmd: python -m src.training.train
     deps:
     - src/training/train.py
     - data/wikitext-train.txt
-    - data/wikitext_val.txt
+    - data/wikitext-val.txt
     outs:
     - models/best_model.pt
   evaluate:
     cmd: python -m src.training.evaluate
     deps:
     - src/training/evaluate.py
-    - data/wikitext_test.txt
+    - data/wikitext-test.txt
     - models/best_model.pt
