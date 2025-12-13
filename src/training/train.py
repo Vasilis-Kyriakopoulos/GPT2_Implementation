@@ -31,7 +31,7 @@ logging.basicConfig(
 
 os.environ["MLFLOW_TRACKING_USERNAME"] = os.getenv("MLFLOW_TRACKING_USERNAME")
 os.environ["MLFLOW_TRACKING_PASSWORD"] = os.getenv("MLFLOW_TRACKING_PASSWORD")
-
+print(os.environ["MLFLOW_TRACKING_USERNAME"])
 
 def plot_losses(epochs_seen, train_losses, val_losses):
     fig, ax1 = plt.subplots(figsize=(5, 3))
