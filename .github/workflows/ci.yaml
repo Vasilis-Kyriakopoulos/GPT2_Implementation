@@ -30,7 +30,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Pull model artifact
-        run: dvc pull model/best_model.pt
+        run: dvc pull models/best_model.pt
 
       - name: Run tests
         run: |
