@@ -98,7 +98,5 @@ def main(cfg: DictConfig):
         print(f"Test Loss: {test_loss:.4f}")
         mlflow.log_metric("test_loss", test_loss)
 
-
-
 if __name__ == "__main__":
     main()

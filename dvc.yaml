@@ -7,6 +7,14 @@ stages:
     - data/wikitext-train.txt
     - data/wikitext-val.txt
     - data/wikitext-test.txt
+    
+  upload_data:
+    cmd: dvc push data/wikitext-train.txt data/wikitext-val.txt data/wikitext-test.txt
+    deps:
+    - data/wikitext-train.txt
+    - data/wikitext-val.txt
+    - data/wikitext-test.txt
+  
   training:
     cmd: python -m src.training.train
     deps:
