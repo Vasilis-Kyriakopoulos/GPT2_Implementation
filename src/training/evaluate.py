@@ -37,7 +37,7 @@ def main(cfg: DictConfig):
     # -----------------------------
     # Load dataset (Wikitext)
     # -----------------------------
-    test_dataset_name = cfg.data.train_dataset_name    
+    test_dataset_name = cfg.data.test_dataset_name    
     test_text = ""
     try:
         with open(to_absolute_path(f"data/{test_dataset_name}"), 'r', encoding='utf-8') as f:
