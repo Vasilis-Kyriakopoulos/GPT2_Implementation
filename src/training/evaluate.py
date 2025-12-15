@@ -44,6 +44,7 @@ def main(cfg: DictConfig):
             test_text = f.read()
     except Exception as e:
         logger.error(f"Error reading dataset files: {e}")
+        exit(1)
     # -----------------------------
     # Tokenizer
     # -----------------------------
