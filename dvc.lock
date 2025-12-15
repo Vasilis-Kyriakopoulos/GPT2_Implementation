@@ -45,13 +45,29 @@ stages:
     outs:
     - path: data/wikitext-test.txt
       hash: md5
-      md5: 53167f0759305aa3c7ff756a2c37236e
-      size: 1292013
+      md5: e29d4c37e3df9810f3db49cbea62bf87
+      size: 1294904
     - path: data/wikitext-train.txt
       hash: md5
-      md5: 55bee1507e473fa1e449ac0f127b5988
-      size: 10951562
+      md5: a1de5b7788ea55940415f2745bfcb8d6
+      size: 10975329
     - path: data/wikitext-val.txt
       hash: md5
-      md5: 987a1022ed54978af94031b9135a3de2
-      size: 1148007
+      md5: b9e7adf7f0456cf615f591a1d3716db5
+      size: 1150468
+  upload_data:
+    cmd: dvc push data/wikitext-train.txt data/wikitext-val.txt 
+      data/wikitext-test.txt
+    deps:
+    - path: data/wikitext-test.txt
+      hash: md5
+      md5: e29d4c37e3df9810f3db49cbea62bf87
+      size: 1294904
+    - path: data/wikitext-train.txt
+      hash: md5
+      md5: a1de5b7788ea55940415f2745bfcb8d6
+      size: 10975329
+    - path: data/wikitext-val.txt
+      hash: md5
+      md5: b9e7adf7f0456cf615f591a1d3716db5
+      size: 1150468
