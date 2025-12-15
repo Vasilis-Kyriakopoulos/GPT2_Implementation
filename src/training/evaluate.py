@@ -55,9 +55,9 @@ def main(cfg: DictConfig):
     context_length = cfg.data.context_length
     batch_size = cfg.training.batch_size
     num_workers = cfg.data.num_workers
-    train_dataset = GPT2Dataset(txt=test_text, tokenizer=tokenizer, stride = context_length,max_length=context_length)
+    test_dataset = GPT2Dataset(txt=test_text, tokenizer=tokenizer, stride = context_length,max_length=context_length)
    
-    test_loader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True, drop_last = True, num_workers = num_workers)
+    test_loader = DataLoader(test_dataset, batch_size = batch_size, shuffle = True, drop_last = True, num_workers = num_workers)
 
      # -----------------------------
     # Model
