@@ -41,12 +41,7 @@ jobs:
           MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
         run: |
-          python - <<'PY'
-          import os
-          v = os.getenv("MLFLOW_TRACKING_USERNAME", "")
-          print("SET" if v else "MISSING", "len=", len(v))
-          PY
-          echo "MLFLOW_TRACKING_USERNAME=${{ secrets.MLFLOW_TRACKING_USERNAME }}"
           python -m pytest -q
+          docker compose docker-compose.yml up 
           python -m src.training.evaluate
 

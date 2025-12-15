@@ -1,4 +1,6 @@
-dataset_name: wikitext
+train_dataset_name: wikitext-train.txt
+val_dataset_name: wikitext-val.txt
+test_dataset_name: wikitext-test.txt
 dataset_config: wikitext-2-raw-v1
 context_length: 128
 num_workers: 0

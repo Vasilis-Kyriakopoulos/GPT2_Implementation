@@ -29,8 +29,8 @@ logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
 )
 
-os.environ["MLFLOW_TRACKING_USERNAME"] = os.getenv("MLFLOW_TRACKING_USERNAME")
-os.environ["MLFLOW_TRACKING_PASSWORD"] = os.getenv("MLFLOW_TRACKING_PASSWORD")
+os.environ["MLFLOW_TRACKING_USERNAME"] = os.getenv("MLFLOW_TRACKING_USERNAME","")
+os.environ["MLFLOW_TRACKING_PASSWORD"] = os.getenv("MLFLOW_TRACKING_PASSWORD","")
 
 
 def plot_losses(epochs_seen, train_losses, val_losses):
@@ -56,10 +56,22 @@ def main(cfg: DictConfig):
     # -----------------------------
     # Load dataset (Wikitext)
     # -----------------------------
-    ds = load_dataset(cfg.data.dataset_name,cfg.data.dataset_config)
-    train_text = " ".join(ds["train"]["text"])
-    val_text   = " ".join(ds["validation"]["text"])
 
+    train_dataset_name = cfg.data.train_dataset_name
+    val_dataset_name   = cfg.data.val_dataset_name
+    
+    train_text = ""
+    val_text   = "" 
+    try:
+        with open(to_absolute_path(f"data/{train_dataset_name}"), 'r', encoding='utf-8') as f:
+            train_text = f.read()
+        
+        with open(to_absolute_path(f"data/{val_dataset_name}"), 'r', encoding='utf-8') as f:
+            val_text = f.read()
+            
+    except Exception as e:
+        logger.error(f"Error reading dataset files: {e}")
+           
     # -----------------------------
     # Tokenizer
     # -----------------------------

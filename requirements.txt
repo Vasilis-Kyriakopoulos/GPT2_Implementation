@@ -10,6 +10,5 @@ omegaconf==2.3.0
 dagshub==0.6.3
 dvc==3.64.2
 dvc-s3==3.2.2
-torch==2.3.1
 scikit-learn
 pandas

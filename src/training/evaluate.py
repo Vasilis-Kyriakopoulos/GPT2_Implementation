@@ -25,8 +25,8 @@ logging.basicConfig(
 )
 
 
-os.environ["MLFLOW_TRACKING_USERNAME"] = os.getenv("MLFLOW_TRACKING_USERNAME")
-os.environ["MLFLOW_TRACKING_PASSWORD"] = os.getenv("MLFLOW_TRACKING_PASSWORD")
+os.environ["MLFLOW_TRACKING_USERNAME"] = os.getenv("MLFLOW_TRACKING_USERNAME","")
+os.environ["MLFLOW_TRACKING_PASSWORD"] = os.getenv("MLFLOW_TRACKING_PASSWORD","")
 print('username' + os.environ["MLFLOW_TRACKING_USERNAME"])
 
 @hydra.main(config_path="../../configs", config_name="config", version_base=None)
@@ -37,9 +37,13 @@ def main(cfg: DictConfig):
     # -----------------------------
     # Load dataset (Wikitext)
     # -----------------------------
-    ds = load_dataset(cfg.data.dataset_name,cfg.data.dataset_config)
-    test_text = " ".join(ds["test"]["text"])
-
+    test_dataset_name = cfg.data.train_dataset_name    
+    test_text = ""
+    try:
+        with open(to_absolute_path(f"data/{test_dataset_name}"), 'r', encoding='utf-8') as f:
+            test_text = f.read()
+    except Exception as e:
+        logger.error(f"Error reading dataset files: {e}")
     # -----------------------------
     # Tokenizer
     # -----------------------------
