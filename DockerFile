@@ -6,4 +6,4 @@ RUN python -m pip install --upgrade pip && \
     pip install -r requirements.txt 
 ENV GIT_PYTHON_REFRESH=quiet
 CMD  python -m pytest -q && dvc pull models/champion/trained_model.pt && dvc pull models/champion/metrics.json && dvc pull models/champion/config.yaml && dvc pull data/wikitext-test.txt \
-     && python -m src.training.evaluate --model-path models/champion/trained_model.pt --output-path models/candidate/metrics.json --config-path models/champion/config.yaml
+     && python -m src.training.evaluate --model-path models/champion/trained_model.pt --output-path models/champion/metrics.json --config-path models/champion/config.yaml
