@@ -1,3 +1,4 @@
+import json
 import torch
 import logging
 import time
@@ -78,8 +79,8 @@ class Trainer:
                 if val_loss < best_val_loss:
                     best_val_loss = val_loss
                     bad_epochs = 0
-                    os.makedirs("models", exist_ok=True)
-                    torch.save(self.model.state_dict(), "models/best_model.pt")
+                    os.makedirs("models/candidate", exist_ok=True)
+                    torch.save(self.model.state_dict(), "models/candidate/trained_model.pt")
                     logger.info("New best model saved!")
                 else:
                     bad_epochs += 1
@@ -91,6 +92,6 @@ class Trainer:
 
                 time.sleep(4)
             # Load the best model after training
-            
-            self.model.load_state_dict(torch.load("models/best_model.pt"))
-            
+
+            self.model.load_state_dict(torch.load("models/candidate/trained_model.pt"))
+            logger.info("Best model loaded after training.")

@@ -1,4 +1,7 @@
+import json
 import os
+
+import yaml
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -10,12 +13,37 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import logging
 import mlflow
-import hydra
 from omegaconf import DictConfig
+from omegaconf import OmegaConf
 from src.training.trainer import Trainer
 from urllib.parse import urlparse
 import dagshub
 from hydra.utils import to_absolute_path
+import argparse
+
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Evaluate a model")
+    parser.add_argument(
+        "--model-path",
+        type=str,
+        required=True,
+        help="Path to model weights (.pt)"
+    )
+    parser.add_argument(
+        "--config-path",
+        type=str,
+        required=True,
+        help="Path to config."
+    )
+    parser.add_argument(
+        "--output-path",
+        type=str,
+        default="artifacts/metrics.json",
+        help="Where to write metrics JSON"
+    )
+    return parser.parse_args()
 
 
 logger = logging.getLogger(__name__)
@@ -29,21 +57,29 @@ os.environ["MLFLOW_TRACKING_USERNAME"] = os.getenv("MLFLOW_TRACKING_USERNAME",""
 os.environ["MLFLOW_TRACKING_PASSWORD"] = os.getenv("MLFLOW_TRACKING_PASSWORD","")
 
 
-@hydra.main(config_path="../../configs", config_name="config", version_base=None)
-def main(cfg: DictConfig):
-
-    print("Hydra output dir:", hydra.core.hydra_config.HydraConfig.get().runtime.output_dir)
+def main():
+    args = parse_args()
+    logger.info(f"Model path:{args.model_path}")
+    logger.info(f"Output path:{args.output_path}")
+    logger.info(f"Config path:{args.config_path}")
+    model_path = args.model_path
+    output_path = args.output_path
+    config_path = args.config_path    
+    cfg = OmegaConf.load(config_path)
 
     # -----------------------------
     # Load dataset (Wikitext)
     # -----------------------------
     test_dataset_name = cfg.data.test_dataset_name    
     test_text = ""
+
+    
     try:
         with open(to_absolute_path(f"data/{test_dataset_name}"), 'r', encoding='utf-8') as f:
             test_text = f.read()
+             
     except Exception as e:
-        logger.error(f"Error reading dataset files: {e}")
+        logger.error(f"Error reading files: {e}")
         assert 1 == 1
     # -----------------------------
     # Tokenizer
@@ -92,11 +128,16 @@ def main(cfg: DictConfig):
 
         optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.training.lr)
         criterion = nn.CrossEntropyLoss()
-        model.load_state_dict(torch.load(to_absolute_path('models/best_model.pt'), map_location=device))
+        model.load_state_dict(torch.load(to_absolute_path(model_path), map_location=device))
         evaluator = Trainer(model, optimizer, criterion=criterion, device=device, cfg=cfg,log_freq=0)
         test_loss = evaluator.evaluate(test_loader)
-        print(f"Test Loss: {test_loss:.4f}")
+        logger.info(f"Test Loss: {test_loss:.4f}")
         mlflow.log_metric("test_loss", test_loss)
+        with open(to_absolute_path(output_path), "w") as f:
+            data = {
+                "test_loss": test_loss
+            }
+            json.dump(data, f)
 
 if __name__ == "__main__":
     main()

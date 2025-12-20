@@ -5,5 +5,5 @@ RUN python -m pip install --upgrade pip && \
     pip install -r requirements_cpu.txt && \
     pip install -r requirements.txt 
 ENV GIT_PYTHON_REFRESH=quiet
-CMD  python -m pytest -q && dvc pull models/best_model.pt && dvc pull data/wikitext-test.txt \
-     && python -m src.training.evaluate
+CMD  python -m pytest -q && dvc pull models/champion/trained_model.pt && dvc pull data/wikitext-test.txt \
+     && python -m src.training.evaluate --model-path models/champion/trained_model.pt --output-path models/candidate/metrics.json --config-path models/champion/config.yaml

@@ -1,8 +1,6 @@
 stages:
   training_data_prep:
     cmd: python -m src.data.preprocess
-    deps:
-    - data/wikitext_data.txt
     outs:
     - data/wikitext-train.txt
     - data/wikitext-val.txt
@@ -22,14 +20,24 @@ stages:
     - data/wikitext-train.txt
     - data/wikitext-val.txt
     outs:
-    - models/best_model.pt
+    - models/candidate/trained_model.pt
+
   evaluate:
-    cmd: python -m src.training.evaluate
+    cmd: python -m src.training.evaluate --model-path models/candidate/trained_model.pt --output-path models/candidate/metrics.json --config-path models/candidate/config.yaml
     deps:
     - src/training/evaluate.py
     - data/wikitext-test.txt
-    - models/best_model.pt
+    - models/candidate/trained_model.pt
+
   upload_model:
-    cmd: dvc push models/best_model.pt
+    cmd: dvc push models/candidate/trained_model.pt
     deps:
-    - models/best_model.pt
+    - models/candidate/trained_model.pt
+
+
+  git_commit:
+    cmd: git add . && git commit -m "DVC pipeline update" || echo "No changes to commit"
+    deps:
+    - models/candidate/trained_model.pt
+    - models/candidate/metrics.json
+    - models/candidate/config.yaml

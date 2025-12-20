@@ -13,61 +13,65 @@ stages:
       size: 1148007
     - path: src/training/train.py
       hash: md5
-      md5: f96a6988c3a0999842018338d4032105
-      size: 4920
+      md5: 71f436efdfadf91c15746cef272ce281
+      size: 5427
     outs:
-    - path: models/best_model.pt
+    - path: models/candidate/trained_model.pt
       hash: md5
-      md5: d6bf6e87b5694258205536ee836c047d
-      size: 52330677
+      md5: 336a03383fd10d44fc4d126677923a6f
+      size: 52330758
   evaluate:
-    cmd: python -m src.training.evaluate
+    cmd: python -m src.training.evaluate --model-path 
+      models/candidate/trained_model.pt --output-path 
+      models/candidate/metrics.json --config-path models/candidate/config.yaml
     deps:
     - path: data/wikitext-test.txt
       hash: md5
       md5: 53167f0759305aa3c7ff756a2c37236e
       size: 1292013
-    - path: models/best_model.pt
+    - path: models/candidate/trained_model.pt
       hash: md5
-      md5: d6bf6e87b5694258205536ee836c047d
-      size: 52330677
+      md5: 336a03383fd10d44fc4d126677923a6f
+      size: 52330758
     - path: src/training/evaluate.py
       hash: md5
-      md5: 17510d673d3e96a785f0f8e552f0b9ee
-      size: 3358
+      md5: ddd9a40b203eeeaf0a609e1ce27aeadf
+      size: 4399
   training_data_prep:
     cmd: python -m src.data.preprocess
-    deps:
-    - path: data/wikitext_data.txt
-      hash: md5
-      md5: 33a84f130602a7c74fea8557abf5ac8e
-      size: 11012046
     outs:
     - path: data/wikitext-test.txt
       hash: md5
-      md5: e29d4c37e3df9810f3db49cbea62bf87
-      size: 1294904
+      md5: 53167f0759305aa3c7ff756a2c37236e
+      size: 1292013
     - path: data/wikitext-train.txt
       hash: md5
-      md5: a1de5b7788ea55940415f2745bfcb8d6
-      size: 10975329
+      md5: 55bee1507e473fa1e449ac0f127b5988
+      size: 10951562
     - path: data/wikitext-val.txt
       hash: md5
-      md5: b9e7adf7f0456cf615f591a1d3716db5
-      size: 1150468
+      md5: 987a1022ed54978af94031b9135a3de2
+      size: 1148007
   upload_data:
     cmd: dvc push data/wikitext-train.txt data/wikitext-val.txt 
       data/wikitext-test.txt
     deps:
     - path: data/wikitext-test.txt
       hash: md5
-      md5: e29d4c37e3df9810f3db49cbea62bf87
-      size: 1294904
+      md5: 53167f0759305aa3c7ff756a2c37236e
+      size: 1292013
     - path: data/wikitext-train.txt
       hash: md5
-      md5: a1de5b7788ea55940415f2745bfcb8d6
-      size: 10975329
+      md5: 55bee1507e473fa1e449ac0f127b5988
+      size: 10951562
     - path: data/wikitext-val.txt
       hash: md5
-      md5: b9e7adf7f0456cf615f591a1d3716db5
-      size: 1150468
+      md5: 987a1022ed54978af94031b9135a3de2
+      size: 1148007
+  upload_model:
+    cmd: dvc push models/candidate/trained_model.pt
+    deps:
+    - path: models/candidate/trained_model.pt
+      hash: md5
+      md5: 336a03383fd10d44fc4d126677923a6f
+      size: 52330758

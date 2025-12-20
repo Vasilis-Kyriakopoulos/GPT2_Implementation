@@ -16,6 +16,7 @@ import mlflow
 from mlflow.models import infer_signature
 import hydra
 from omegaconf import DictConfig
+from omegaconf import OmegaConf
 from src.training.trainer import Trainer
 from urllib.parse import urlparse
 import dagshub
@@ -51,7 +52,7 @@ def plot_losses(epochs_seen, train_losses, val_losses):
 @hydra.main(config_path="../../configs", config_name="config", version_base=None)
 def main(cfg: DictConfig):
 
-    print("Hydra output dir:", hydra.core.hydra_config.HydraConfig.get().runtime.output_dir)
+    logger.info(f"Hydra output dir:{hydra.core.hydra_config.HydraConfig.get().runtime.output_dir}")
 
     # -----------------------------
     # Load dataset (Wikitext)
@@ -105,12 +106,14 @@ def main(cfg: DictConfig):
 
     with mlflow.start_run(run_name=run_name):
         # Log config parameters
+        os.makedirs("models/candidate", exist_ok=True)
         mlflow.log_params(cfg.model)
         mlflow.log_params(cfg.training)
         signature = infer_signature(
             model_input=torch.randn(1, context_length).numpy(),
             model_output=torch.randn(1, context_length, cfg.model.vocab_size).numpy()
         )
+        OmegaConf.save(cfg, "models/candidate/config.yaml") 
     # -----------------------------
     # Model
     # -----------------------------
@@ -133,10 +136,12 @@ def main(cfg: DictConfig):
         mlflow.log_metric("final_train_loss", trainer.train_losses[-1])
         mlflow.log_metric("final_val_loss", trainer.val_losses[-1])
 
-        tracking_url_type_store=urlparse(mlflow.get_tracking_uri()).scheme
-        model_dir = Path(to_absolute_path("models"))
-        model_path = model_dir / "best_model.pt"
-        mlflow.log_artifact(str(model_path), artifact_path="best_model")
+
+        model_dir = Path(to_absolute_path("models/candidate"))
+        model_path = model_dir / "trained_model.pt"
+        mlflow.log_artifact(str(model_path), artifact_path="trained_model")
+        
+        mlflow.pytorch.log_model(pytorch_model=model, name="pytorch_model", signature=signature)
         
         epochs_tensor = torch.linspace(0, cfg.training.epochs, len(trainer.train_losses))
         plot_losses(epochs_tensor, trainer.train_losses, trainer.val_losses)
