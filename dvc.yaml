@@ -21,6 +21,7 @@ stages:
     - data/wikitext-val.txt
     outs:
     - models/candidate/trained_model.pt
+    - models/candidate/config.yaml
 
   evaluate:
     cmd: python -m src.training.evaluate --model-path models/candidate/trained_model.pt --output-path models/candidate/metrics.json --config-path models/candidate/config.yaml
@@ -28,16 +29,30 @@ stages:
     - src/training/evaluate.py
     - data/wikitext-test.txt
     - models/candidate/trained_model.pt
+    outs:
+    - models/candidate/metrics.json
 
   upload_model:
-    cmd: dvc push models/candidate/trained_model.pt
-    deps:
-    - models/candidate/trained_model.pt
-
-
-  git_commit:
-    cmd: git add . && git commit -m "DVC pipeline update" || echo "No changes to commit"
+    cmd: dvc push models/candidate/trained_model.pt models/candidate/metrics.json models/candidate/config.yaml
     deps:
     - models/candidate/trained_model.pt
     - models/candidate/metrics.json
     - models/candidate/config.yaml
+  
+  promote_model:
+    cmd: python -m src.training.promote
+    deps:
+    - models/candidate/trained_model.pt
+    - models/candidate/metrics.json
+    - models/candidate/config.yaml
+    outs:
+    - models/champion/trained_model.pt
+    - models/champion/metrics.json
+    - models/champion/config.yaml
+
+#  git_commit:
+#    cmd: git add . && git commit -m "DVC pipeline update" || echo "No changes to commit"
+#    deps:
+#    - models/candidate/trained_model.pt
+#    - models/candidate/metrics.json
+#    - models/candidate/config.yaml

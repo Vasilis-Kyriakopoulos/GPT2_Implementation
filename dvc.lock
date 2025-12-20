@@ -16,9 +16,13 @@ stages:
       md5: 71f436efdfadf91c15746cef272ce281
       size: 5427
     outs:
+    - path: models/candidate/config.yaml
+      hash: md5
+      md5: 9f9dfeba57d8ee4335ac14d96962e2fa
+      size: 415
     - path: models/candidate/trained_model.pt
       hash: md5
-      md5: 336a03383fd10d44fc4d126677923a6f
+      md5: b2781ef693e36d3794f73958217d5e31
       size: 52330758
   evaluate:
     cmd: python -m src.training.evaluate --model-path 
@@ -31,12 +35,17 @@ stages:
       size: 1292013
     - path: models/candidate/trained_model.pt
       hash: md5
-      md5: 336a03383fd10d44fc4d126677923a6f
+      md5: b2781ef693e36d3794f73958217d5e31
       size: 52330758
     - path: src/training/evaluate.py
       hash: md5
       md5: ddd9a40b203eeeaf0a609e1ce27aeadf
       size: 4399
+    outs:
+    - path: models/candidate/metrics.json
+      hash: md5
+      md5: ef593a63d28b091e294901dbdfcf1aa0
+      size: 32
   training_data_prep:
     cmd: python -m src.data.preprocess
     outs:
@@ -69,9 +78,46 @@ stages:
       md5: 987a1022ed54978af94031b9135a3de2
       size: 1148007
   upload_model:
-    cmd: dvc push models/candidate/trained_model.pt
+    cmd: dvc push models/candidate/trained_model.pt 
+      models/candidate/metrics.json models/candidate/config.yaml
     deps:
+    - path: models/candidate/config.yaml
+      hash: md5
+      md5: 9f9dfeba57d8ee4335ac14d96962e2fa
+      size: 415
+    - path: models/candidate/metrics.json
+      hash: md5
+      md5: ef593a63d28b091e294901dbdfcf1aa0
+      size: 32
     - path: models/candidate/trained_model.pt
       hash: md5
-      md5: 336a03383fd10d44fc4d126677923a6f
+      md5: b2781ef693e36d3794f73958217d5e31
+      size: 52330758
+  promote_model:
+    cmd: python -m src.training.promote
+    deps:
+    - path: models/candidate/config.yaml
+      hash: md5
+      md5: 9f9dfeba57d8ee4335ac14d96962e2fa
+      size: 415
+    - path: models/candidate/metrics.json
+      hash: md5
+      md5: ef593a63d28b091e294901dbdfcf1aa0
+      size: 32
+    - path: models/candidate/trained_model.pt
+      hash: md5
+      md5: b2781ef693e36d3794f73958217d5e31
+      size: 52330758
+    outs:
+    - path: models/champion/config.yaml
+      hash: md5
+      md5: 9f9dfeba57d8ee4335ac14d96962e2fa
+      size: 415
+    - path: models/champion/metrics.json
+      hash: md5
+      md5: ef593a63d28b091e294901dbdfcf1aa0
+      size: 32
+    - path: models/champion/trained_model.pt
+      hash: md5
+      md5: b2781ef693e36d3794f73958217d5e31
       size: 52330758
