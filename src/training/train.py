@@ -34,6 +34,8 @@ def train_one_epoch(model, dataloader, optimizer, device,freq_print):
     for i, (x, y) in enumerate(dataloader):
         if i%freq_print == 0:
             print(f"steps:{i+1}/{len(dataloader)}")
+        #if i % 100 == 0 and i > 0:
+        #    time.sleep(5)
         x = x.to(device)
         y = y.to(device)
         optimizer.zero_grad()
@@ -72,7 +74,7 @@ def evaluate(model, dataloader, device):
     return total_loss / len(dataloader)
 
 
-def main():
+def train():
     # -----------------------------
     # Load dataset (Wikitext)
     # -----------------------------
@@ -86,7 +88,7 @@ def main():
     # -----------------------------
     # Datasets / Loaders
     # -----------------------------
-    context_length = 256
+    context_length = 128
     batch_size = 16
 
     train_dataset = GPT2Dataset(txt=train_text, tokenizer=tokenizer, stride = context_length,max_length=context_length)
@@ -101,10 +103,10 @@ def main():
     vocab_size = tokenizer.vocab_size
     model = GPTModel_Torch(
         vocab_size=vocab_size,
-        max_len=256,
-        embed_dim=256,
-        num_layers=6,
-        num_heads=4,
+        max_len=128,
+        embed_dim=768,
+        num_layers=12,
+        num_heads=12,
         dropout=0.1
     )
 
@@ -119,7 +121,7 @@ def main():
     best_val_loss = float("inf")
     patience = 2            # stop after 2 bad epochs
     bad_epochs = 0
-    epochs = 10
+    epochs = 4
     train_losses, val_losses = [],[]
     for epoch in range(epochs):
         
@@ -148,6 +150,8 @@ def main():
         time.sleep(4)
 
     epochs_tensor = torch.linspace(0, epochs, len(train_losses))
+    for i,(val_loss,train_loss)  in enumerate(zip(val_losses,train_losses)):
+        print(f"Epoch {i+1}: Train Loss = {train_loss:.4f}, Val Loss = {val_loss:.4f}")
     plot_losses(epochs_tensor, train_losses, val_losses)
 
 
@@ -155,16 +159,16 @@ def main():
 if __name__ == "__main__":
     os.makedirs("models", exist_ok=True)
     os.makedirs("tokenizers", exist_ok=True)
-    #main()
+    train()
     tokenizer = GPT2Tokenizer()
     vocab_size = tokenizer.vocab_size
     print(vocab_size)
     model = GPTModel_Torch(
         vocab_size=vocab_size,
-        max_len=256,
-        embed_dim=256,
-        num_layers=6,
-        num_heads=4,
+        max_len=128,
+        embed_dim=768,
+        num_layers=12,
+        num_heads=12,
         dropout=0.1
     )
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -176,5 +180,5 @@ if __name__ == "__main__":
     prompt_ids = torch.tensor([prompt_ids], dtype=torch.long).to(device)
     model.to(device)
 
-    generated_ids = model.generate(prompt_ids,max_new_tokens=100,context_length=256,temperature=1,top_k=25)
+    generated_ids = model.generate(prompt_ids,max_new_tokens=100,context_length=128,temperature=1,top_k=25)
     print(tokenizer.decode(generated_ids[0].tolist()))
