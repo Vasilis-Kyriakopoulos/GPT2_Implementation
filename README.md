@@ -54,10 +54,6 @@ Text Generation
 
 After training, the model can be used to generate text autoregressively from a given prompt.
 
-Example generation command:
-```bash
-python src/training/generate.py --prompt "Once upon a time"
-```
 
 Install dependencies using:
 ```bash
