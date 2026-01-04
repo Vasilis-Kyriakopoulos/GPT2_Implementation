@@ -2,7 +2,6 @@
 from src.model.tokenizer import GPT2Tokenizer
 
 def test_encode_decode_roundtrip():
-    # assuming trained tokenizer loaded here
     tok = GPT2Tokenizer()
     text = "The war started"
     ids = tok.encode(text)
