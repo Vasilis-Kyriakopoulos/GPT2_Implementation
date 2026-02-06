@@ -44,6 +44,8 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           
-          docker compose up --build
+          docker compose build --no-cache
+          docker compose up
+
         #  python -m src.training.evaluate
 
