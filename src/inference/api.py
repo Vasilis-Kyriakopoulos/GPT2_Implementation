@@ -15,10 +15,21 @@ from src.model.tokenizer import GPT2Tokenizer
 
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
-)
+logger.setLevel(logging.INFO)
+
+if not logger.handlers:
+    log_format = "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+    formatter = logging.Formatter(log_format)
+
+    file_handler = logging.FileHandler("inference.log", encoding="utf-8")
+    file_handler.setFormatter(formatter)
+
+    stream_handler = logging.StreamHandler()
+    stream_handler.setFormatter(formatter)
+
+    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
+    logger.propagate = False
 
 CHAMPION_MODEL_PATH = Path("models/champion/trained_model.pt")
 CHAMPION_CONFIG_PATH = Path("models/champion/config.yaml")
