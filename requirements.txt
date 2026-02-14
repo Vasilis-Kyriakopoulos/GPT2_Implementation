@@ -13,3 +13,5 @@ dvc-s3==3.2.2
 pathspec==0.12.1
 scikit-learn
 pandas
+fastapi
+uvicorn[standard]

@@ -100,6 +100,18 @@ python -m src.training.train
 python -m src.training.generate 
 ```
 
+# Run inference API (champion model from DVC)
+```bash
+uvicorn src.inference.api:app --host 0.0.0.0 --port 8000
+```
+
+Example request:
+```bash
+curl -X POST "http://127.0.0.1:8000/generate" \
+  -H "Content-Type: application/json" \
+  -d "{\"prompt\":\"The war started\",\"max_new_tokens\":50,\"temperature\":0.8,\"top_k\":25}"
+```
+
 # MLflow + DAGsHub Setup (Example)
 ```bash
 export MLFLOW_TRACKING_URI="https://dagshub.com/<user>/<repo>.mlflow"
